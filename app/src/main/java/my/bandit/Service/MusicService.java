@@ -14,7 +14,7 @@ import java.io.IOException;
 
 import lombok.Getter;
 import lombok.Setter;
-import my.bandit.ViewModel.HomeViewModel;
+import my.bandit.ViewModel.MainViewModel;
 
 public class MusicService extends Service {
     private final IBinder binder = new LocalBinder();
@@ -24,7 +24,7 @@ public class MusicService extends Service {
     @Getter
     private boolean isPrepared;
     @Setter
-    private HomeViewModel homeViewModel;
+    private MainViewModel viewModel;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -43,11 +43,13 @@ public class MusicService extends Service {
         mediaPlayer.setOnPreparedListener(mp -> {
             isPrepared = true;
             mp.start();
-            homeViewModel.getSongDuration().postValue(mp.getDuration());
+            viewModel.getSongDuration().postValue(mp.getDuration());
         });
     }
 
     public void setDataSource(File file) throws IOException {
+        if (file == null)
+            return;
         setPrepared(false);
         mediaPlayer.reset();
         mediaPlayer.setDataSource(this, Uri.fromFile(file));

@@ -14,6 +14,7 @@ public class LoginRepository {
 
     private static volatile LoginRepository instance;
 
+
     private LoginDataSource dataSource;
 
     // If user credentials will be cached in local storage, it is recommended it be encrypted
@@ -59,7 +60,12 @@ public class LoginRepository {
 
     public Result<LoggedInUser> login(String username, String password) {
         // handle login
-        Result<LoggedInUser> result = dataSource.login(username, password);
+        Result<LoggedInUser> result = null;
+        try {
+            result = dataSource.execute(username, password).get();
+        } catch (ExecutionException | InterruptedException e) {
+            result = new Result.Error(new RuntimeException("Failed to login"));
+        }
         if (result instanceof Result.Success) {
             setLoggedInUser(((Result.Success<LoggedInUser>) result).getData());
         }

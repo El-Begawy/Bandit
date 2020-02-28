@@ -1,74 +1,51 @@
 package my.bandit.Repository;
 
-import android.os.AsyncTask;
-import android.util.Log;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
-import my.bandit.Database.DatabaseConnection;
+import my.bandit.Api.ApiClient;
 import my.bandit.data.model.LoggedInUser;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class AccountLoader extends AsyncTask<String, String, LoggedInUser> {
+public class AccountLoader implements Callback<ArrayList<Integer>> {
+    private LoggedInUser user;
+    public static final int FAVOURITES = 1;
+    public static final int LIKES = 0;
+    public static final int DISLIKES = 2;
+    private int[] type = new int[3];
+    private int counter = 0;
+    private int addCounter = 0;
 
-    LoggedInUser user;
-    private ArrayList<Integer> favourites = new ArrayList<>();
-    private ArrayList<Integer> like = new ArrayList<>();
-    private ArrayList<Integer> dislike = new ArrayList<>();
-
-    private void fetchLists(Statement statement) throws SQLException {
-        Log.d("Login", "Fetching likes");
-        ResultSet resultSet = statement.executeQuery("select * from likes where ID = " + user.getUserId());
-        while (resultSet.next()) {
-            Log.d("Login", "Added " + resultSet.getInt("postID"));
-            like.add(resultSet.getInt("postID"));
-        }
-        Log.d("Login", "Fetching dislikes");
-        resultSet = statement.executeQuery("select * from dislikes where ID = " + user.getUserId());
-        while (resultSet.next()) {
-            dislike.add(resultSet.getInt("postID"));
-        }
-        Log.d("Login", "Fetching favourites");
-        resultSet = statement.executeQuery("select * from favourites where ID = " + user.getUserId());
-        while (resultSet.next()) {
-            favourites.add(resultSet.getInt("postID"));
-        }
+    public AccountLoader(LoggedInUser user) {
+        this.user = user;
     }
 
-    private LoggedInUser getUserData(String username) throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-        DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
-        Connection connection = databaseConnection.getConnection();
-        if (connection == null) {
-            Log.d("Database Connection", "Can not connect to db.");
-            return null;
-        }
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery("select * from accounts where username='" + username + "'");
-        int id = 0;
-        while (resultSet.next()) {
-            Log.i("Login", "Found id " + resultSet.getInt("ID"));
-            id = resultSet.getInt("ID");
-        }
-        user = new LoggedInUser(id, username);
-        fetchLists(statement);
-        user.setDisliked(dislike);
-        user.setFavourites(favourites);
-        user.setLiked(like);
-        resultSet.close();
-        databaseConnection.releaseConnection(connection);
-        return user;
+    public void fetchList(int type) {
+        Call<ArrayList<Integer>> call;
+        this.type[addCounter++] = type;
+        if (type == 0) {
+            call = ApiClient.getInstance().getUsersApi().FetchLikes(user.getUserId());
+        } else if (type == 1) {
+            call = ApiClient.getInstance().getUsersApi().FetchFavourites(user.getUserId());
+        } else
+            call = ApiClient.getInstance().getUsersApi().FetchDislikes(user.getUserId());
+        call.enqueue(this);
     }
 
     @Override
-    protected LoggedInUser doInBackground(String... strings) {
-        try {
-            return getUserData(strings[0]);
-        } catch (SQLException | InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public void onResponse(Call<ArrayList<Integer>> call, Response<ArrayList<Integer>> response) {
+        if (type[counter] == 0) {
+            user.setLiked(response.body());
+        } else if (type[counter] == 1) {
+            user.setFavourites(response.body());
+        } else
+            user.setDisliked(response.body());
+        counter++;
+    }
+
+    @Override
+    public void onFailure(Call<ArrayList<Integer>> call, Throwable t) {
+        t.printStackTrace();
     }
 }

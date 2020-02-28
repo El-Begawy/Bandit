@@ -9,6 +9,10 @@ public class Post {
     @Getter
     private String pictureDir;
     @Getter @Setter
+    private int up_votes;
+    @Getter @Setter
+    private int down_votes;
+    @Getter @Setter
     private int postID;
     public Post(Song song, String pictureDir) {
         this.song = song;

@@ -9,23 +9,11 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favList"
-        android:layout_width="411dp"
-        android:layout_height="676dp"
-        android:layout_marginTop="55dp"
+        android:layout_width="407dp"
+        android:layout_height="731dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="412dp"
-        android:layout_height="56dp"
-        android:background="@color/colorPrimary"
-        android:text="Favourites"
-        android:textColor="@android:color/widget_edittext_dark"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

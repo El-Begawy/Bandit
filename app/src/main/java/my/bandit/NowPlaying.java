@@ -1,33 +1,28 @@
 package my.bandit;
 
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-
-import android.graphics.Color;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import my.bandit.FilesDownloader.DownloadImageTask;
 import my.bandit.Model.Post;
 import my.bandit.ViewModel.NowPlayingViewModel;
 
 public class NowPlaying extends Fragment {
 
     private NowPlayingViewModel mViewModel;
-    private ImageView likeImage, dislikeImage, heartImage;
+    private ImageView likeImage, dislikeImage, heartImage, albumImage;
     private Post currPost = PostsCache.getInstance().getLastPlayed();
-
-    public static NowPlaying newInstance() {
-        return new NowPlaying();
-    }
+    private TextView songName, bandName;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -42,6 +37,11 @@ public class NowPlaying extends Fragment {
         likeImage = getView().findViewById(R.id.PostLikeImage);
         dislikeImage = getView().findViewById(R.id.PostUnlikeImage);
         heartImage = getView().findViewById(R.id.PostHeartImage);
+        albumImage = getView().findViewById(R.id.PostAlbumPicture);
+        new DownloadImageTask(albumImage, getView().getContext(), getContext().getFilesDir().getAbsolutePath())
+                .downloadImage(currPost.getPictureDir());
+        songName = getView().findViewById(R.id.PostSongName);
+        bandName = getView().findViewById(R.id.PostSongAlbum);
         likeImage.setOnClickListener(this::like);
         dislikeImage.setOnClickListener(this::dislike);
         heartImage.setOnClickListener(this::favourite);
@@ -70,20 +70,22 @@ public class NowPlaying extends Fragment {
                 } else
                     heartImage.setImageResource(R.drawable.ic_favorite_black_24dp);
             });
+            bandName.setText(currPost.getSong().getBandName());
+            songName.setText(currPost.getSong().getSongName());
         }
     }
 
-    public void like(View view) {
+    private void like(View view) {
         Log.d("Now playing", "Like pressed");
         mViewModel.like();
     }
 
-    public void dislike(View view) {
+    private void dislike(View view) {
         Log.d("Now playing", "dislike pressed");
         mViewModel.dislike();
     }
 
-    public void favourite(View view) {
+    private void favourite(View view) {
         Log.d("Now playing", "favourite pressed");
         mViewModel.favourite();
     }

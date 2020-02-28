@@ -13,7 +13,7 @@ import my.bandit.R;
 
 public class PostViewHolder extends RecyclerView.ViewHolder {
     @Getter
-    private TextView postTextView, postAlbumTextView;
+    private TextView postTextView, postAlbumTextView, likes, dislikes;
     @Getter
     private ImageView LikeImageView, UnlikeImageView, HeartImageView, albumPicture;
     @Getter
@@ -21,11 +21,13 @@ public class PostViewHolder extends RecyclerView.ViewHolder {
     public PostViewHolder(@NonNull View itemView) {
         super(itemView);
         postTextView = itemView.findViewById(R.id.PostSongName);
-        postAlbumTextView = itemView.findViewById(R.id.PostSingAlbum);
+        postAlbumTextView = itemView.findViewById(R.id.PostSongAlbum);
         LikeImageView = itemView.findViewById(R.id.PostLikeImage);
         UnlikeImageView = itemView.findViewById(R.id.PostUnlikeImage);
         HeartImageView = itemView.findViewById(R.id.PostHeartImage);
         albumPicture = itemView.findViewById(R.id.PostAlbumPicture);
         cardView = itemView.findViewById(R.id.cardView);
+        likes = itemView.findViewById(R.id.LikesCount);
+        dislikes = itemView.findViewById(R.id.DislikesCount);
     }
 }

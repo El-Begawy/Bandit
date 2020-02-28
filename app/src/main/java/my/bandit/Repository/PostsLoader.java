@@ -1,82 +1,62 @@
 package my.bandit.Repository;
 
 import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
 
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.lang.ref.WeakReference;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
-import my.bandit.Database.DatabaseConnection;
+import my.bandit.Api.ApiClient;
 import my.bandit.Model.Post;
-import my.bandit.Model.Song;
 import my.bandit.ViewModel.HomeViewModel;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class PostsLoader extends AsyncTask<Void, Void, ArrayList<Post>> {
+public class PostsLoader implements Callback<List<Post>> {
     private HomeViewModel postsViewModel;
     private WeakReference<SwipeRefreshLayout> swipeRefreshLayoutRef;
-    private WeakReference<Context> contextWeakReference;
+    public static final int TRENDING = 0;
+    public static final int NEW = 1;
 
-    public PostsLoader(HomeViewModel postsViewModel, SwipeRefreshLayout swipeRefreshLayout, Context context) {
+    public PostsLoader(HomeViewModel postsViewModel, SwipeRefreshLayout swipeRefreshLayout) {
         this.postsViewModel = postsViewModel;
         this.swipeRefreshLayoutRef = new WeakReference<>(swipeRefreshLayout);
-        this.contextWeakReference = new WeakReference<>(context);
     }
 
-    private ArrayList<Post> LoadPosts() {
-        DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
-        Connection connection = null;
-        try {
-            connection = databaseConnection.getConnection();
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select * from posts");
-            ArrayList<Post> postsLoaded = new ArrayList<>();
-            while (resultSet.next()) {
-                Song song = new Song(resultSet.getString("post_song_name"),
-                        resultSet.getString("post_album_name"),
-                        resultSet.getString("post_song_dir"));
-                Post post = new Post(song, resultSet.getString("post_picture_dir"));
-                postsLoaded.add(post);
-            }
-            resultSet.close();
-            databaseConnection.releaseConnection(connection);
-            return postsLoaded;
-        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @Override
-    protected ArrayList<Post> doInBackground(Void... voids) {
-        return LoadPosts();
-    }
-
-    @Override
-    protected void onCancelled() {
-        super.onCancelled();
-        Log.i("Cancel", "Cancel");
-    }
-
-    @Override
-    protected void onPostExecute(ArrayList<Post> posts) {
-        super.onPostExecute(posts);
+    private void refreshLayout() {
         SwipeRefreshLayout swipeRefreshLayout = swipeRefreshLayoutRef.get();
         if (swipeRefreshLayout != null)
             swipeRefreshLayout.setRefreshing(false);
-        if (posts == null) {
-            Context context = contextWeakReference.get();
-            if (context != null)
-                Toast.makeText(context, "Failed to connect to server.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
+    }
+
+    private void postValue(ArrayList<Post> posts) {
         postsViewModel.getPosts().postValue(posts);
+    }
+
+    public void loadPosts(int startPost, int endPost, int tab) {
+        Call<List<Post>> call;
+        if (tab == 1) {
+            call = ApiClient.getInstance().getPostApi().getNewPosts();
+        } else {
+            call = ApiClient.getInstance().getPostApi().getTrending();
+        }
+        call.enqueue(this);
+    }
+
+    @Override
+    public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+        refreshLayout();
+        ArrayList<Post> posts = (ArrayList<Post>) response.body();
+        postValue(posts);
+    }
+
+    @Override
+    public void onFailure(Call<List<Post>> call, Throwable t) {
+        t.printStackTrace();
+        refreshLayout();
     }
 }

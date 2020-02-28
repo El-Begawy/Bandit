@@ -4,9 +4,9 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import lombok.Getter;
+import my.bandit.Api.ApiClient;
 import my.bandit.Model.Post;
-import my.bandit.Repository.UpdateFavourite;
-import my.bandit.Repository.UpdateLikes;
+import my.bandit.Repository.UpdateCallback;
 import my.bandit.data.LoginDataSource;
 import my.bandit.data.LoginRepository;
 import my.bandit.data.model.LoggedInUser;
@@ -32,36 +32,36 @@ public class NowPlayingViewModel extends ViewModel {
     public void like() {
         if (liked.getValue()) {
             liked.setValue(false);
-            new UpdateLikes().execute(user.getUserId(), post.getPostID(), -1, 0);
-            user.getLiked().remove((Integer)post.getPostID());
+            user.getLiked().remove((Integer) post.getPostID());
         } else {
             liked.setValue(true);
-            new UpdateLikes().execute(user.getUserId(), post.getPostID(), 1, 0);
             user.getLiked().add(post.getPostID());
         }
+        ApiClient.getInstance().getUsersApi().Like(user.getUserId(), post.getPostID())
+                .enqueue(new UpdateCallback());;
     }
 
     public void dislike() {
         if (disliked.getValue()) {
             disliked.setValue(false);
-            new UpdateLikes().execute(user.getUserId(), post.getPostID(), -1, 1);
-            user.getDisliked().remove((Integer)post.getPostID());
+            user.getDisliked().remove((Integer) post.getPostID());
         } else {
             disliked.setValue(true);
-            new UpdateLikes().execute(user.getUserId(), post.getPostID(), 1, 1);
             user.getDisliked().add(post.getPostID());
         }
+        ApiClient.getInstance().getUsersApi().Dislike(user.getUserId(), post.getPostID())
+                .enqueue(new UpdateCallback());;
     }
 
     public void favourite() {
         if (favourite.getValue()) {
             favourite.setValue(false);
-            new UpdateFavourite().execute(user.getUserId(), post.getPostID(), -1);
-            user.getFavourites().remove((Integer)post.getPostID());
+            user.getFavourites().remove((Integer) post.getPostID());
         } else {
             favourite.setValue(true);
-            new UpdateFavourite().execute(user.getUserId(), post.getPostID(), 1);
             user.getFavourites().add(post.getPostID());
         }
+        ApiClient.getInstance().getUsersApi().Favourite(user.getUserId(), post.getPostID())
+                .enqueue(new UpdateCallback());
     }
 }

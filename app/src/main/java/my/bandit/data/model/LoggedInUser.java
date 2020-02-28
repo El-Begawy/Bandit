@@ -10,17 +10,20 @@ import lombok.Setter;
  */
 public class LoggedInUser {
 
+    @Setter
     private int userId;
     private String displayName;
-    @Getter@Setter
-    private ArrayList<Integer> favourites;
-    @Getter@Setter
-    private ArrayList<Integer> liked;
-    @Getter@Setter
-    private ArrayList<Integer> disliked;
+    @Getter
+    @Setter
+    private ArrayList<Integer> favourites = new ArrayList<>();
+    @Getter
+    @Setter
+    private ArrayList<Integer> liked = new ArrayList<>();
+    @Getter
+    @Setter
+    private ArrayList<Integer> disliked = new ArrayList<>();
 
-    public LoggedInUser(int userId, String displayName) {
-        this.userId = userId;
+    public LoggedInUser(String displayName) {
         this.displayName = displayName;
     }
 
